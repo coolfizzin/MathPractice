@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Math Practice</title>
+	<style type="text/css">
+
+body {
+	font:24pt serif;
+	}
+input, select, option, button {
+	font:24pt serif;
+	}
+#maxmin {
+	display:inline-block;
+	vertical-align:top;
+	}
+#tip {
+	display:inline-block;
+	padding:0.7em;
+	vertical-align:top;
+	}
+#tiphead {
+	font-size:0.5em;
+	font-variant:small-caps;
+	text-decoration:underline;
+	}
+#tiptext {
+	font-size:0.7em;
+	}
+#tiptext span {
+		font-size:0.7em;
+		font-stretch:extra-condensed;
+		font-variant:small-caps;
+		}
+
+	</style>
+	<script language="Javascript">
+//### Sets the tip
+function signSet() {
+	var sign = document.getElementById('sign');
+	var signVal = sign.options[sign.selectedIndex].value;
+	var second = document.getElementById('second');
+	var secondType = second.options[second.selectedIndex].value;
+	var tip = document.getElementById('tiptext');
+	if (signVal=="addition" || signVal=="multiplication") {
+		if (secondType=="random")
+			tip.innerHTML="1st & 2nd numbers";
+		else
+			tip.innerHTML="1st number only";
+		}
+	else if (signVal=="subtraction" || signVal=="division") {
+		if (secondType=="random")
+			tip.innerHTML="2nd number & <b>answer</b>";
+		else
+			tip.innerHTML="<b>answer</b> only";
+		}
+	else if (signVal=="plusminus") {
+		if (secondType=="random")
+			tip.innerHTML="<span>Addition:</span> 1st & 2nd numbers<br/><span>Subtraction:</span> 2nd number & <b>answer</b>";
+		else
+			tip.innerHTML="<span>Addition:</span> 1st & 2nd numbers<br/><span>Subtraction:</span> 2nd number & <b>answer</b>";
+		}
+	else if (signVal=="multidivide") {
+		if (secondType=="random")
+			tip.innerHTML="<span>Multiplication:</span> 1st & 2nd numbers<br/><span>Division:</span> 2nd number & <b>answer</b>";
+		else
+			tip.innerHTML="<span>Multiplication:</span> 1st & 2nd numbers<br/><span>Division:</span> 2nd number & <b>answer</b>";
+		}
+	else if (signVal=="all") {
+		if (secondType=="random")
+			tip.innerHTML="<span>Plus/Times:</span> 1st & 2nd numbers<br/><span>Minus/Divide:</span> 2nd number & <b>answer</b>";
+		else
+			tip.innerHTML="<span>Plus/Times:</span> 1st & 2nd numbers<br/><span>Minus/Divide:</span> 2nd number & <b>answer</b>";
+		}
+	}
+
+//### Shows or hides extra fields
+function secondSet() {
+	var second = document.getElementById('second');
+	var secondType = second.options[second.selectedIndex].value;
+	var by = document.getElementById('by');
+	var bymax = document.getElementById('bymax');
+	if (secondType=='specific') {
+		by.style.visibility='';
+		bymax.style.visibility='hidden';
+		}
+	else if (secondType=='range') {
+		by.style.visibility='';
+		bymax.style.visibility='';
+		}
+	else {
+		by.style.visibility='hidden';
+		bymax.style.visibility='hidden';
+		}
+	signSet();
+	}
+
+//### Validates number ranges
+function validate(minId, maxId) {
+	var min = document.getElementById(minId);
+	var max = document.getElementById(maxId);
+	if (parseInt(max.value) < parseInt(min.value))
+		max.value = min.value;
+	}
+
+	</script>
+</head>
+<body onload="secondSet()">
+<form action="Practice.htm" method="get" accept-charset="utf-8">
+
+<label for="size">Size:</label>
+<select name="size" id="size">
+	<option selected value="5x5">5 &times; 5</option>
+	<option value="6x6">6 &times; 6</option>
+</select>
+<br/>
+<label for="sign">Sign:</label>
+<select name="sign" id="sign" onchange="signSet()">
+	<option value="addition">+</option>
+	<option value="subtraction">&minus;</option>
+	<option value="multiplication">&times;</option>
+	<option value="division">&divide;</option>
+	<option selected value="plusminus">+/&minus;</option>
+	<option value="multidivide">&times;/&divide;</option>
+	<option value="all">+/&minus;/&times;/&divide;</option>
+</select>
+<br/>
+<label for="second">Second number:</label>
+<select name="second" id="second" onchange="secondSet()">
+	<option selected value="random">Random</option>
+	<option value="specific">Specific</option>
+	<option value="range">Range</option>
+</select>
+<input type="number" name="by" id="by" min="0" max="99" value="1" style="visibility:hidden; width:2em" onkeyup="validate('by', 'bymax')" onchange="validate('by', 'bymax')"/>
+<input type="number" name="bymax" id="bymax" min="0" max="99" value="12" style="visibility:hidden; width:2em" onkeyup="validate('by', 'bymax')" onchange="validate('by', 'bymax')"/><br/>
+<div id="maxmin">
+	<label for="min" id="min">Minimum:</label> <input type="number" name="min" min="0" max="99" value="0" style="width:2em" onkeyup="validate('min', 'max')" onchange="validate('min', 'max')"/><br/>
+	<label for="max" id="max">Maximum:</label> <input type="number" name="max" min="0" max="99" value="12" style="width:2em" onkeyup="validate('min', 'max')" onchange="validate('min', 'max')"/><br/>
+	<button type="submit" style="float:left" onLoad="signSet()">Make it!</button>
+</div>
+<div id="tip">
+	<div id="tiphead">Max and Min determine:</div>
+	<div id="tiptext"></div>
+</div>
+</form>
+
+</body>
+</html>

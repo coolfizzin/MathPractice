@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html><!-- From http://leancrew.com/all-this/2008/01/math-practice-sheet-in-html-and-javascript/ -->
+<head>
+  <title>Math Practice</title>
+  <style type="text/css">
+
+@page {
+	size: letter portrait;
+	margin: 0.5in 0.75in 0 0.75in;
+	}
+
+body {
+	width:7in;
+	}
+
+h1 {
+    text-align: center;
+    font-family: Sans-Serif;
+    font-weight: bold;
+    font-size: 32px;
+    margin: 0;
+    padding: 0;
+  }
+
+main {
+	width:100%;
+	text-align: center;
+	color: black;
+	background-color: white;
+	display: flex;
+	flex-flow: row wrap;
+	justify-content: space-between;
+	align-items: center;
+	align-content: space-around;
+	}
+
+div {
+	flex-shrink:0.5;
+	flex-basis: 20%;	/* 16.6% Adjust for fitting more in a row */
+	padding: 37px 0;
+	}
+div.size-6x6 {
+	flex-shrink:0.3;
+	flex-basis: 16.6%;
+	}
+
+table {
+	font-family: Times New Roman;
+	font-size: 30pt;
+    text-align: right;
+	border-spacing:0;
+	margin: auto;
+  }
+div.size-6x6 table {
+	font-size: 24pt;
+	}
+
+td {
+	//border:solid black 1px;
+	padding:0 4px;
+	vertical-align:center;
+	overflow:none;
+	line-height:1.05em;
+	}
+.sign {
+	text-align:left;
+	width:0.5em;
+	line-height:1em;
+	vertical-align:middle;
+	font-size:0.8em;
+	}
+.num {
+	min-width:1em
+	}
+.line {
+	border-bottom:0.2rem solid #000;
+	padding-bottom:7px;
+	}
+  </style>
+  <script language="Javascript">
+/*	//////////////////
+		CLOCKWORKS
+	////////////////// */
+var count	= 25;	// default: 5x5
+var size	= "5x5";
+var sign, action, min, max, by, bymax, urlParams, variations, onerange, tworange;
+/*	========================
+		HELPER FUNCTIONS
+	======================== */
+function factorial(num) {
+	if (num < 0) 
+		return -1;
+	else if (num == 0) 
+		return 1;
+	else
+		return (num * factorial(num - 1));
+	}
+function sumto(num) {
+	if (num < 1) 
+		return -1;
+	else if (num == 1) 
+		return 1;
+	else
+		return (num + sumto(num - 1));
+	}
+function combo(r, n) {
+	return factorial(r+n-1)/(factorial(r)*factorial(n-1));
+	}
+function getOverlap(a,b,c,d) {
+	var low = Math.max(a,c);
+	var high= Math.min(b,d);
+	var range=1 + high - low;
+	return Math.max(range, 0);	// Don't return less than 0
+	}
+//alert(combo(2,5));
+//To get combination: (r+n-1)!/(r!(n-1)!)
+
+/*	=======================
+		 PROCESS INPUT
+	======================= */
+(window.onpopstate = function () {
+    var match,
+        pl     = /\+/g,  // Regex for replacing addition symbol with a space
+        search = /([^&=]+)=?([^&]*)/g,
+        decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+        query  = window.location.search.substring(1);
+
+    urlParams = {};
+    while (match = search.exec(query))
+       urlParams[decode(match[1])] = decode(match[2]);
+	})();
+
+sign = 'plusminus';
+action = 'Addition & Subtraction';
+if ('size' in urlParams && urlParams['size']=="6x6") {
+	count = 36;
+	size = "6x6";
+	}
+if ('sign' in urlParams && urlParams['sign']!='') {
+	switch (urlParams['sign']) {
+		case ('addition'):
+			sign = '+';
+			var action = 'Addition';
+			break;
+		case ('subtraction'):
+			sign = '&minus;';
+			var action = 'Subtraction';
+			break;
+		case ('multiplication'):
+			sign = '&times;';
+			var action = 'Multiplication';
+			break;
+		case ('division'):
+			sign = '&divide;';
+			var action = 'Division';
+			break;
+		case ('plusminus'):
+			sign = 'plusminus';
+			var action = 'Addition & Subtraction';
+			break;
+		case ('multidivide'):
+			sign = 'multidivide';
+			var action = 'Multiplication & Division';
+			break;
+		case ('all'):
+			sign = 'all';
+			var action = 'Comprehensive Review';
+			break;
+		}
+	}
+
+max = ('max' in urlParams && urlParams['max']!='') ? parseInt(urlParams['max']) : 12;
+min = ('min' in urlParams && urlParams['min']!='') ? parseInt(urlParams['min']) : 0;
+if (max < min)
+	max = min;
+
+if (urlParams['second']=='specific') {
+	if ('by' in urlParams && urlParams['by']!='')
+		by = parseInt(urlParams['by']);
+	else if (max > min && max > 0)
+		by = Math.floor((max - min)/2);	// Try to guess a specific by
+	else
+		by = min;
+	bymax = by;
+	}
+else if (urlParams['second']=='range') {
+	by = ('by' in urlParams && urlParams['by']!='') ? parseInt(urlParams['by']) : min;
+	bymax = ('bymax' in urlParams && urlParams['bymax']!='') ? parseInt(urlParams['bymax']) : max;
+	// Validation
+	if (bymax < by)
+		bymax = by;
+	}
+else {
+	by = min;
+	bymax = max;
+	}
+
+/*	========================
+	  CALCULATE VARIATIONS
+	======================== */
+onerange = (1 + max - min);
+tworange = (1 + bymax - by);
+
+//### Method 1: Get overlap, then adjust for non-overlap
+/*
+// Non-overlapping ranges
+if (by > max || bymax < min) {
+	variations = onerange * tworange;
+	}
+// Overlapping ranges
+else {
+	variations = combo(2, onerange);
+	//var debug = variations;
+	//alert(variations + '-' + sumto(by - min) + '+' + onerange * (bymax - max));
+	if (by > min) {
+		variations -= sumto(by - min);
+		//debug += '-' + sumto(by - min);
+		}
+	else if (by < min) {
+		variations += (onerange * (min - by));
+		//debug += '+' + onerange * (min - by);
+		}
+	if (bymax > max) {
+		variations += (onerange * (bymax - max));
+		//debug += '+' + onerange * (bymax - max);
+		}
+	else if (bymax < max){
+		variations -= sumto(max - bymax);
+		//debug += '-' + sumto(max - bymax);
+		}
+	//alert(debug);
+	}
+*/
+
+//### Method 2: Simple formula (Accurate)
+// First get total possibilities (A * B)
+variations = (onerange * tworange);
+// Then subtract for overlap
+variations-=sumto(getOverlap(min, max, by, bymax)-1);
+
+//### Finish variations
+//alert(variations);
+
+var did ={	// For remembering already-used problems
+	"+" : new Array(),
+	"&minus;" : new Array(),
+	"&times;" : new Array(),
+	"&divide;" : new Array()
+	};
+var posted=new Array();	// For recalling what is above or below
+
+/*	========================
+	  	GENERATE PROBLEM
+	======================== */
+
+function single_problem(idx) {
+	var iterations = 0;
+	do {
+		iterations ++;
+	    var operator, top, bottom, key;
+		if (sign=='plusminus') {
+			operator = "+";
+			if (Math.random() < 0.5)
+				operator = "&minus;";
+			}
+		else if (sign=='multidivide') {
+			operator = "&times;";
+			if (Math.random() < 0.5)
+				operator = "&divide;";
+			}
+		else if (sign=='all') {
+			operator = "+";
+			if (Math.random() < 0.25)
+				operator = "&minus;";
+			else if (Math.random() < 0.5)
+				operator = "&times;";
+			else if (Math.random() < 0.75)
+				operator = "&divide;";
+			}
+		else {
+			operator = sign;
+			}
+	
+		// a = Second number (which can be set by the form)
+		var a, b, c;
+		if (urlParams['second']=='specific')
+			a = by;
+		else if (urlParams['second']=='range')
+			a = Math.floor(Math.random()*((bymax + 1)-by) + by);
+		else
+			a = Math.floor(Math.random()*((max + 1)-min) + min);
+	
+		// The answer to addition, or first number for subtraction, which will always be either the same as a or up to 12 higher
+		if (operator == "+" || operator == "&minus;") {
+	    	c = Math.floor(Math.random()*((a+max+1)-(a+min)) + (a+min));
+		    b = c - a;
+			}
+		// The answer to multiplication, or first number for division, which will always be either the same as a or up to 12 higher
+		else if (operator == "&times;" || operator == "&divide;") {
+			b = Math.floor(Math.random()*((max + 1)-min) + min);
+			c = a * b;
+			}
+		
+	    if (operator == "+" || operator == "&times;") {
+			top = b;
+			bottom = a;
+			if (b <= a)	// Always put lower number first so both ways are counted as the same
+				key = b + operator + a;
+			else
+				key = a + operator + b;
+			}
+		else {
+			top = c;
+			bottom = a;
+			if (c <= a)
+				key = c + operator + a;
+			else
+				key = a + operator + c;
+	    	}
+		//# Check for redundancy
+		if (iterations < 50) { // failsafe to avoid excessive looping
+			// Is this one directly to the left or above?
+			if ((idx>0 && posted[idx-1]==key) || (idx>=5 && posted[idx-5]==key))
+				continue;
+			// Have all options been used before repeating?
+			if (did[operator].includes(key))	// iterations is a 
+				continue;
+			}
+
+		//# Success
+		iterations = 0;
+		did[operator].push(key);
+		posted[idx]=key;
+		// Reset variations counting if full
+		if (did[operator].length >= variations)
+			did[operator] = new Array();
+
+		// Finally write it
+	    return '<div class="size-' + size + '"><table>' +
+	                   '<tr><td/><td class="num">' + top + '</td></tr>' +
+	                   '<tr><td class="sign line">' + operator + '</td><td class="line">' + bottom + '</td></tr>' +
+	                   '</table></div>';
+		} while (1)	// Repeats only if attempt fails
+	}
+  </script>
+</head>
+<body>
+  <h1 id='title'>Math Practice</h1>
+	<main>
+    <script language="Javascript">
+/*	//////////////////
+		PROCEDURE
+	////////////////// */
+    for (i=0; i<count; i++){
+        document.write(single_problem(i));
+    	}
+
+	// Set title
+	var title=document.getElementById('title');
+	if (urlParams['second']=='specific' && by != -1)
+		title.innerHTML = action + ': ' + by;
+	else if (urlParams['second']=='range' && by != -1 && bymax != -1)
+		title.innerHTML = action + ': ' + by + ' to ' + bymax;
+	else
+		title.innerHTML = action;
+    </script>
+  	</main>
+</body>
+</html>
+
